@@ -1,0 +1,146 @@
+version: "3.8"
+
+services:
+  web:
+    container_name: api
+    build:
+      context: ./
+      dockerfile: docker/Dockerfile
+    ports:
+      - "5555:5555"
+      - "7070:7070"
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - POSTGRES_HOST=host.docker.internal
+      - POSTGRES_PORT=5432
+      - REDIS_ADDR=host.docker.internal:6379
+      - JAEGER_HOST=host.docker.internal:6831
+      - KAFKA_BROKERS=host.docker.internal:9092
+    depends_on:
+      - postgesql
+      - redis
+      - prometheus
+      - grafana
+      - jaeger
+      - zookeeper
+      - kafka
+    restart: always
+    volumes:
+      - ./:/app
+    networks:
+      - company_api
+
+  postgesql:
+    image: postgres:16-alpine
+    container_name: company_postgesql
+    ports:
+      - "5432:5432"
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=company_db
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    networks:
+      - company_api
+
+  prometheus:
+    container_name: prometheus_container
+    image: prom/prometheus
+    volumes:
+      - ./docker/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:Z
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention=20d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - '9090:9090'
+    networks:
+      - company_api
+
+  node_exporter:
+    container_name: node_exporter_container
+    image: prom/node-exporter
+    ports:
+      - '9101:9100'
+    networks:
+      - company_api
+
+  grafana:
+    container_name: grafana_container
+    image: grafana/grafana
+    ports:
+      - '3000:3000'
+    networks:
+      - company_api
+
+  jaeger:
+    container_name: jaeger_container
+    image: jaegertracing/all-in-one:1.21
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+    ports:
+      - 5775:5775/udp
+      - 6831:6831/udp
+      - 6832:6832/udp
+      - 5778:5778
+      - 16686:16686
+      - 14268:14268
+      - 14250:14250
+      - 9411:9411
+    networks:
+      - company_api
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    container_name: microservices_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - company_api
+
+  kafka:
+    image: wurstmeister/kafka:2.12-2.3.1
+    restart: on-failure:3
+    links:
+    - zookeeper
+    ports:
+    - 9092:9092
+    - 9093:9093
+    environment:
+      KAFKA_VERSION: '2.3.1'
+      KAFKA_BROKER_ID: '1'
+      KAFKA_CREATE_TOPICS: 'test-writer-0:3:1,test-writer-1:3:1'
+      KAFKA_DELETE_TOPIC_ENABLE: 'true'
+      KAFKA_ADVERTISED_HOST_NAME: 'localhost'
+      KAFKA_ADVERTISED_PORT: '9092'
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_MESSAGE_MAX_BYTES: '200000000'
+      KAFKA_LISTENERS: 'PLAINTEXT://:9092,SASL_PLAINTEXT://:9093'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://localhost:9092,SASL_PLAINTEXT://localhost:9093'
+      KAFKA_SASL_ENABLED_MECHANISMS: 'PLAIN,SCRAM-SHA-256,SCRAM-SHA-512'
+      KAFKA_AUTHORIZER_CLASS_NAME: 'kafka.security.auth.SimpleAclAuthorizer'
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: 'true'
+      KAFKA_OPTS: "-Djava.security.auth.login.config=/opt/kafka/config/kafka_server_jaas.conf"
+      CUSTOM_INIT_SCRIPT: |-
+        echo -e 'KafkaServer {\norg.apache.kafka.common.security.scram.ScramLoginModule required\n username="adminscram"\n password="admin-secret";\n org.apache.kafka.common.security.plain.PlainLoginModule required\n username="adminplain"\n password="admin-secret"\n user_adminplain="admin-secret";\n  };' > /opt/kafka/config/kafka_server_jaas.conf;
+        /opt/kafka/bin/kafka-configs.sh --zookeeper zookeeper:2181 --alter --add-config 'SCRAM-SHA-256=[password=admin-secret-256],SCRAM-SHA-512=[password=admin-secret-512]' --entity-type users --entity-name adminscram
+    networks:
+      - company_api
+
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+    - 2181:2181
+    networks:
+      - company_api
+
+networks:
+  company_api:
+    driver: bridge

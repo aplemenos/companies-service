@@ -1,0 +1,71 @@
+server:
+  AppVersion: 1.0.0
+  Port: :8080
+  PprofPort: :5555
+  Mode: Development
+  JwtSecretKey: secretkey
+  CookieName: jwt-token
+  ReadTimeout: 10
+  WriteTimeout: 10
+  SSL: true
+  CtxDefaultTimeout: 12
+  Debug: false
+
+logger:
+  Development: true
+  DisableCaller: false
+  DisableStacktrace: false
+  Encoding: console
+  Level: info
+
+postgres:
+  PostgresqlHost: postgesql
+  PostgresqlPort: 5432
+  PostgresqlUser: postgres
+  PostgresqlPassword: postgres
+  PostgresqlDbname: company_db
+  PostgresqlSslmode: false
+  PgDriver: pgx
+
+redis:
+  RedisAddr: redis:6379
+  RedisPassword:
+  RedisDb: 0
+  RedisDefaultdb: 0
+  MinIdleConns: 200
+  PoolSize: 12000
+  PoolTimeout: 240
+  Password: ""
+  DB: 0
+
+kafka:
+  brokers: [ "172.24.0.1:9092", "172.24.0.1:9093" ]
+  initTopics: true
+kafkaTopics:
+  companyCreated:
+    topicName: company_created
+    partitions: 10
+    replicationFactor: 1
+  companyUpdated:
+    topicName: company_updated
+    partitions: 10
+    replicationFactor: 1
+  companyDeleted:
+    topicName: company_deleted
+    partitions: 10
+    replicationFactor: 1
+
+cookie:
+  Name: jwt-token
+  MaxAge: 86400
+  Secure: false
+  HttpOnly: true
+
+metrics:
+  url: 0.0.0.0:7070
+  service: api
+
+jaeger:
+  Host: localhost:6831
+  ServiceName: COMPANY_API
+  LogSpans: true

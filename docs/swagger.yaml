@@ -1,0 +1,315 @@
+basePath: /api/v1
+definitions:
+  httphelper.RestError:
+    properties:
+      error:
+        type: string
+      status:
+        type: integer
+    type: object
+  models.Company:
+    properties:
+      amount_of_employees:
+        type: integer
+      company_description:
+        maxLength: 3000
+        type: string
+      company_id:
+        type: string
+      company_name:
+        maxLength: 15
+        type: string
+      company_type:
+        type: string
+      registered:
+        type: boolean
+    required:
+    - amount_of_employees
+    - company_name
+    - company_type
+    - registered
+    type: object
+  models.User:
+    properties:
+      about:
+        maxLength: 1024
+        type: string
+      address:
+        maxLength: 250
+        type: string
+      birthday:
+        maxLength: 10
+        type: string
+      city:
+        maxLength: 24
+        type: string
+      country:
+        maxLength: 24
+        type: string
+      created_at:
+        type: string
+      email:
+        maxLength: 60
+        type: string
+      first_name:
+        maxLength: 30
+        type: string
+      gender:
+        maxLength: 10
+        type: string
+      last_name:
+        maxLength: 30
+        type: string
+      login_date:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      phone_number:
+        maxLength: 20
+        type: string
+      postcode:
+        type: integer
+      role:
+        maxLength: 10
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    required:
+    - first_name
+    - last_name
+    - password
+    type: object
+info:
+  contact:
+    email: anargyros.plemenos@gmail.com
+    name: Anargyros Plemenos
+    url: https://github.com/aplemenos
+  description: Example Golang REST API
+  title: Company REST API
+  version: "1.0"
+paths:
+  /auth/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: some description
+      parameters:
+      - description: user_id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httphelper.RestError'
+      summary: Delete user account
+      tags:
+      - Auth
+    get:
+      consumes:
+      - application/json
+      description: get string by ID
+      parameters:
+      - description: user_id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httphelper.RestError'
+      summary: get user by id
+      tags:
+      - Auth
+    put:
+      consumes:
+      - application/json
+      description: update existing user
+      parameters:
+      - description: user_id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+      summary: Update user
+      tags:
+      - Auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: login user, returns user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+      summary: Login new user
+      tags:
+      - Auth
+  /auth/me:
+    get:
+      consumes:
+      - application/json
+      description: Get current user by id
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httphelper.RestError'
+      summary: Get user by id
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: register new user, returns user and token
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.User'
+      summary: Register new user
+      tags:
+      - Auth
+  /companies:
+    post:
+      consumes:
+      - application/json
+      description: create a new company
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Company'
+        "400":
+          description: Bad Request
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Create a new company
+      tags:
+      - Companies
+  /companies/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete a company
+      parameters:
+      - description: company_id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Delete a company
+      tags:
+      - Companies
+    get:
+      consumes:
+      - application/json
+      description: Get a company by id
+      parameters:
+      - description: company_id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get a company
+      tags:
+      - Companies
+    put:
+      consumes:
+      - application/json
+      description: update a company
+      parameters:
+      - description: company_id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Company'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Update a company
+      tags:
+      - Companies
+swagger: "2.0"
