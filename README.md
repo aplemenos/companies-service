@@ -7,7 +7,8 @@
 * [viper](https://github.com/spf13/viper) - Go configuration with fangs
 * [go-redis](https://github.com/go-redis/redis) - Type-safe Redis client for Golang
 * [zap](https://github.com/uber-go/zap) - Logger
-* [jaeger](https://github.com/uber/jaeger-lib) - Jaeger
+* [jaeger](https://github.com/uber/jaeger) - Jaeger
+* [tracer](https://github.com/opentracing/opentracing-go) - OpenTracing
 * [kafka](https://github.com/segmentio/kafka-go) - Kafka
 * [validator](https://github.com/go-playground/validator) - Go Struct and Field validation
 * [jwt-go](https://github.com/dgrijalva/jwt-go) - JSON Web Tokens (JWT)
