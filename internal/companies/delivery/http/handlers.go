@@ -64,26 +64,24 @@ func (h *companiesHandlers) Create(c *gin.Context) {
 		return
 	}
 
-	if h.kafkaProducer != nil {
-		// Prepare the kafka event
-		msgBytes, err := json.Marshal(createdCompany)
-		if err != nil {
-			httphelper.ErrResponseWithLog(c, h.logger, err)
-			return
-		}
+	// Prepare the kafka event
+	msgBytes, err := json.Marshal(createdCompany)
+	if err != nil {
+		httphelper.ErrResponseWithLog(c, h.logger, err)
+		return
+	}
 
-		message := kafkaMessages.Message{
-			Topic:   h.cfg.KafkaTopics.CompanyCreated.TopicName,
-			Value:   msgBytes,
-			Time:    time.Now().UTC(),
-			Headers: tracing.GetKafkaTracingHeadersFromSpanCtx(span.Context()),
-		}
+	message := kafkaMessages.Message{
+		Topic:   h.cfg.KafkaTopics.CompanyCreated.TopicName,
+		Value:   msgBytes,
+		Time:    time.Now().UTC(),
+		Headers: tracing.GetKafkaTracingHeadersFromSpanCtx(span.Context()),
+	}
 
-		// Publish a company created event to the kafka broker
-		err = h.kafkaProducer.PublishMessage(ctx, message)
-		if err != nil {
-			h.logger.Warn(err)
-		}
+	// Publish a company created event to the kafka broker
+	err = h.kafkaProducer.PublishMessage(ctx, message)
+	if err != nil {
+		h.logger.Warn(err)
 	}
 
 	c.JSON(http.StatusCreated, createdCompany)
@@ -126,26 +124,24 @@ func (h *companiesHandlers) Update(c *gin.Context) {
 		return
 	}
 
-	if h.kafkaProducer != nil {
-		// Prepare the kafka event
-		msgBytes, err := json.Marshal(updatedCompany)
-		if err != nil {
-			httphelper.ErrResponseWithLog(c, h.logger, err)
-			return
-		}
+	// Prepare the kafka event
+	msgBytes, err := json.Marshal(updatedCompany)
+	if err != nil {
+		httphelper.ErrResponseWithLog(c, h.logger, err)
+		return
+	}
 
-		message := kafkaMessages.Message{
-			Topic:   h.cfg.KafkaTopics.CompanyUpdated.TopicName,
-			Value:   msgBytes,
-			Time:    time.Now().UTC(),
-			Headers: tracing.GetKafkaTracingHeadersFromSpanCtx(span.Context()),
-		}
+	message := kafkaMessages.Message{
+		Topic:   h.cfg.KafkaTopics.CompanyUpdated.TopicName,
+		Value:   msgBytes,
+		Time:    time.Now().UTC(),
+		Headers: tracing.GetKafkaTracingHeadersFromSpanCtx(span.Context()),
+	}
 
-		// Publish a company updated event to the kafka broker
-		err = h.kafkaProducer.PublishMessage(ctx, message)
-		if err != nil {
-			h.logger.Warn(err)
-		}
+	// Publish a company updated event to the kafka broker
+	err = h.kafkaProducer.PublishMessage(ctx, message)
+	if err != nil {
+		h.logger.Warn(err)
 	}
 
 	c.JSON(http.StatusOK, updatedCompany)
@@ -177,27 +173,25 @@ func (h *companiesHandlers) Delete(c *gin.Context) {
 		return
 	}
 
-	if h.kafkaProducer != nil {
-		// Prepare the kafka event
-		msg := `{CompanyID: ` + companyID.String() + `}`
-		msgBytes, err := json.Marshal(msg)
-		if err != nil {
-			httphelper.ErrResponseWithLog(c, h.logger, err)
-			return
-		}
+	// Prepare the kafka event
+	msg := `{CompanyID: ` + companyID.String() + `}`
+	msgBytes, err := json.Marshal(msg)
+	if err != nil {
+		httphelper.ErrResponseWithLog(c, h.logger, err)
+		return
+	}
 
-		message := kafkaMessages.Message{
-			Topic:   h.cfg.KafkaTopics.CompanyDeleted.TopicName,
-			Value:   msgBytes,
-			Time:    time.Now().UTC(),
-			Headers: tracing.GetKafkaTracingHeadersFromSpanCtx(span.Context()),
-		}
+	message := kafkaMessages.Message{
+		Topic:   h.cfg.KafkaTopics.CompanyDeleted.TopicName,
+		Value:   msgBytes,
+		Time:    time.Now().UTC(),
+		Headers: tracing.GetKafkaTracingHeadersFromSpanCtx(span.Context()),
+	}
 
-		// Publish a company deleted event to the kafka broker
-		err = h.kafkaProducer.PublishMessage(ctx, message)
-		if err != nil {
-			h.logger.Warn(err)
-		}
+	// Publish a company deleted event to the kafka broker
+	err = h.kafkaProducer.PublishMessage(ctx, message)
+	if err != nil {
+		h.logger.Warn(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{

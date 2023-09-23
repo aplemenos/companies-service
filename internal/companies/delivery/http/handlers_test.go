@@ -1,6 +1,7 @@
 package http
 
 import (
+	"companies-service/config"
 	"companies-service/internal/companies/mock"
 	"companies-service/internal/companies/service"
 	"companies-service/internal/models"
@@ -34,11 +35,20 @@ func TestCompanyHandlers_Create(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	cfg := &config.Config{
+		KafkaTopics: config.KafkaTopics{
+			CompanyCreated: config.TopicConfig{
+				TopicName: "company_created",
+			},
+		},
+	}
+
 	apiLogger := logger.NewApiLogger(nil)
 	mockCompanyService := mock.NewMockService(ctrl)
 	companiesService := service.NewCompaniesService(nil, mockCompanyService, apiLogger)
 
-	handlers := NewCompaniesHandlers(nil, companiesService, nil, apiLogger)
+	mockKafka := mock.NewMockKafka(ctrl)
+	handlers := NewCompaniesHandlers(cfg, companiesService, mockKafka, apiLogger)
 
 	// Create a test request with a JSON body
 	company := &models.Company{
@@ -50,6 +60,8 @@ func TestCompanyHandlers_Create(t *testing.T) {
 	}
 
 	mockCompanyService.EXPECT().Create(gomock.Any(), gomock.Any()).Return(company, nil)
+
+	mockKafka.EXPECT().PublishMessage(gomock.Any(), gomock.Any()).Return(nil)
 
 	// Define the test route
 	router := gin.Default()
@@ -83,11 +95,20 @@ func TestCompanyHandlers_Update(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	cfg := &config.Config{
+		KafkaTopics: config.KafkaTopics{
+			CompanyUpdated: config.TopicConfig{
+				TopicName: "company_updated",
+			},
+		},
+	}
+
 	apiLogger := logger.NewApiLogger(nil)
 	mockCompanyService := mock.NewMockService(ctrl)
 	companiesService := service.NewCompaniesService(nil, mockCompanyService, apiLogger)
 
-	handlers := NewCompaniesHandlers(nil, companiesService, nil, apiLogger)
+	mockKafka := mock.NewMockKafka(ctrl)
+	handlers := NewCompaniesHandlers(cfg, companiesService, mockKafka, apiLogger)
 
 	// Create a test request with a JSON body
 	companyID := uuid.New()
@@ -100,6 +121,8 @@ func TestCompanyHandlers_Update(t *testing.T) {
 	}
 
 	mockCompanyService.EXPECT().Update(gomock.Any(), gomock.Any()).Return(company, nil)
+
+	mockKafka.EXPECT().PublishMessage(gomock.Any(), gomock.Any()).Return(nil)
 
 	// Define the test route
 	router := gin.Default()
@@ -133,16 +156,27 @@ func TestCompanyHandlers_Delete(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	cfg := &config.Config{
+		KafkaTopics: config.KafkaTopics{
+			CompanyDeleted: config.TopicConfig{
+				TopicName: "company_deleted",
+			},
+		},
+	}
+
 	apiLogger := logger.NewApiLogger(nil)
 	mockCompanyService := mock.NewMockService(ctrl)
 	companiesService := service.NewCompaniesService(nil, mockCompanyService, apiLogger)
 
-	handlers := NewCompaniesHandlers(nil, companiesService, nil, apiLogger)
+	mockKafka := mock.NewMockKafka(ctrl)
+	handlers := NewCompaniesHandlers(cfg, companiesService, mockKafka, apiLogger)
 
 	// Define the company ID for deletion
 	companyID := uuid.New()
 
 	mockCompanyService.EXPECT().Delete(gomock.Any(), companyID).Return(nil)
+
+	mockKafka.EXPECT().PublishMessage(gomock.Any(), gomock.Any()).Return(nil)
 
 	// Define the test route
 	router := gin.Default()
