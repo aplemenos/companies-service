@@ -5,9 +5,11 @@ import (
 	kafkaClient "companies-service/pkg/kafka"
 	"companies-service/pkg/logger"
 	"context"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -108,11 +110,23 @@ func (s *Server) connectKafkaBrokers(ctx context.Context) error {
 }
 
 func (s *Server) initKafkaTopics(ctx context.Context) {
-	// companyCreateTopic := kafka.TopicConfig{
-	// 	Topic:             s.cfg.KafkaTopics.CompanyCreate.TopicName,
-	// 	NumPartitions:     s.cfg.KafkaTopics.CompanyCreate.Partitions,
-	// 	ReplicationFactor: s.cfg.KafkaTopics.CompanyCreate.ReplicationFactor,
-	// }
+	controller, err := s.kafkaConn.Controller()
+	if err != nil {
+		s.logger.Warnf("kafkaConn.Controller", err)
+		return
+	}
+
+	controllerURI := net.JoinHostPort(controller.Host, strconv.Itoa(controller.Port))
+	s.logger.Infof("kafka controller uri: %s", controllerURI)
+
+	conn, err := kafka.DialContext(ctx, "tcp", controllerURI)
+	if err != nil {
+		s.logger.Warnf("initKafkaTopics.DialContext", err)
+		return
+	}
+	defer conn.Close()
+
+	s.logger.Infof("established new kafka controller connection: %s", controllerURI)
 
 	companyCreatedTopic := kafka.TopicConfig{
 		Topic:             s.cfg.KafkaTopics.CompanyCreated.TopicName,
@@ -120,23 +134,11 @@ func (s *Server) initKafkaTopics(ctx context.Context) {
 		ReplicationFactor: s.cfg.KafkaTopics.CompanyCreated.ReplicationFactor,
 	}
 
-	// companyUpdateTopic := kafka.TopicConfig{
-	// 	Topic:             s.cfg.KafkaTopics.CompanyUpdate.TopicName,
-	// 	NumPartitions:     s.cfg.KafkaTopics.CompanyUpdate.Partitions,
-	// 	ReplicationFactor: s.cfg.KafkaTopics.CompanyUpdate.ReplicationFactor,
-	// }
-
 	companyUpdatedTopic := kafka.TopicConfig{
 		Topic:             s.cfg.KafkaTopics.CompanyUpdated.TopicName,
 		NumPartitions:     s.cfg.KafkaTopics.CompanyUpdated.Partitions,
 		ReplicationFactor: s.cfg.KafkaTopics.CompanyUpdated.ReplicationFactor,
 	}
-
-	// companyDeleteTopic := kafka.TopicConfig{
-	// 	Topic:             s.cfg.KafkaTopics.CompanyDelete.TopicName,
-	// 	NumPartitions:     s.cfg.KafkaTopics.CompanyDelete.Partitions,
-	// 	ReplicationFactor: s.cfg.KafkaTopics.CompanyDelete.ReplicationFactor,
-	// }
 
 	companyDeletedTopic := kafka.TopicConfig{
 		Topic:             s.cfg.KafkaTopics.CompanyDeleted.TopicName,
@@ -144,7 +146,7 @@ func (s *Server) initKafkaTopics(ctx context.Context) {
 		ReplicationFactor: s.cfg.KafkaTopics.CompanyDeleted.ReplicationFactor,
 	}
 
-	if err := s.kafkaConn.CreateTopics(
+	if err := conn.CreateTopics(
 		companyCreatedTopic,
 		companyUpdatedTopic,
 		companyDeletedTopic,

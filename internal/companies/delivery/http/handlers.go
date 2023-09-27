@@ -81,7 +81,8 @@ func (h *companiesHandlers) Create(c *gin.Context) {
 	// Publish a company created event to the kafka broker
 	err = h.kafkaProducer.PublishMessage(ctx, message)
 	if err != nil {
-		h.logger.Warn(err)
+		httphelper.ErrResponseWithLog(c, h.logger, err)
+		return
 	}
 
 	c.JSON(http.StatusCreated, createdCompany)
@@ -141,7 +142,8 @@ func (h *companiesHandlers) Update(c *gin.Context) {
 	// Publish a company updated event to the kafka broker
 	err = h.kafkaProducer.PublishMessage(ctx, message)
 	if err != nil {
-		h.logger.Warn(err)
+		httphelper.ErrResponseWithLog(c, h.logger, err)
+		return
 	}
 
 	c.JSON(http.StatusOK, updatedCompany)
@@ -191,7 +193,8 @@ func (h *companiesHandlers) Delete(c *gin.Context) {
 	// Publish a company deleted event to the kafka broker
 	err = h.kafkaProducer.PublishMessage(ctx, message)
 	if err != nil {
-		h.logger.Warn(err)
+		httphelper.ErrResponseWithLog(c, h.logger, err)
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{

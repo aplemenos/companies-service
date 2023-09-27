@@ -69,6 +69,11 @@ func ValidateJWT(tokenString string, cfg *config.Config) (map[string]interface{}
 // Extract bearer token from request Authorization header
 func ExtractBearerToken(r *http.Request) string {
 	headerAuthorization := r.Header.Get("Authorization")
+	if headerAuthorization == "" {
+		return ""
+	}
+
 	bearerToken := strings.Split(headerAuthorization, " ")
+
 	return html.EscapeString(bearerToken[1])
 }
