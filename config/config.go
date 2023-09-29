@@ -23,17 +23,18 @@ type Config struct {
 
 // Server config struct
 type ServerConfig struct {
-	AppVersion        string
-	Port              string
-	PprofPort         string
-	Mode              string
-	JwtSecretKey      string
-	CookieName        string
-	ReadTimeout       time.Duration
-	WriteTimeout      time.Duration
-	SSL               bool
-	CtxDefaultTimeout time.Duration
-	Debug             bool
+	AppVersion           string
+	Port                 string
+	PprofPort            string
+	Mode                 string
+	JwtSecretKey         string
+	CookieName           string
+	ReadTimeout          time.Duration
+	WriteTimeout         time.Duration
+	SSL                  bool
+	CtxDefaultTimeout    time.Duration
+	Debug                bool
+	CheckIntervalSeconds int
 }
 
 // Logger config

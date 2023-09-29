@@ -283,7 +283,7 @@ paths:
       summary: Get a company
       tags:
       - Companies
-    put:
+    patch:
       consumes:
       - application/json
       description: update a company

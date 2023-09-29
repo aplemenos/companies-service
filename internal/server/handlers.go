@@ -9,10 +9,8 @@ import (
 	companiesRepository "companies-service/internal/companies/repository"
 	companiesService "companies-service/internal/companies/service"
 	"companies-service/internal/middleware"
-	"companies-service/pkg/httphelper"
 	"companies-service/pkg/kafka"
 	"companies-service/pkg/metric"
-	"net/http"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -25,7 +23,7 @@ import (
 )
 
 // Map Server Handlers
-func (s *Server) MapHandlers(r *gin.Engine, kafkaProducer kafka.Producer) error {
+func (s *Server) MapHandlers(kafkaProducer kafka.Producer) error {
 	metrics, err := metric.CreateMetrics(s.cfg.Metrics.URL, s.cfg.Metrics.ServiceName)
 	if err != nil {
 		s.logger.Errorf("CreateMetrics Error: %s", err)
@@ -51,9 +49,9 @@ func (s *Server) MapHandlers(r *gin.Engine, kafkaProducer kafka.Producer) error 
 		s.logger)
 
 	docs.SwaggerInfo.Title = "Company Service REST API"
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+	s.gin.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
-	r.Use(cors.New(cors.Config{
+	s.gin.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"POST, OPTIONS, GET, PUT, PATCH, DELETE"},
 		AllowHeaders:     []string{"Origin"},
@@ -66,35 +64,29 @@ func (s *Server) MapHandlers(r *gin.Engine, kafkaProducer kafka.Producer) error 
 	// Logger middleware will write the logs to gin.DefaultWriter
 	// even if you set with GIN_MODE=release.
 	// By default gin.DefaultWriter = os.Stdout
-	r.Use(gin.Logger())
+	s.gin.Use(gin.Logger())
 	// Recovery middleware recovers from any panics and writes a 500 if there was one.
-	r.Use(gin.Recovery())
+	s.gin.Use(gin.Recovery())
 
-	r.Use(requestid.New())
+	s.gin.Use(requestid.New())
 
 	mw := middleware.NewMiddlewareManager(authSrv, s.cfg, []string{"*"}, s.logger)
-	r.Use(mw.MetricsMiddleware(metrics))
+	s.gin.Use(mw.MetricsMiddleware(metrics))
 
-	r.Use(limits.RequestSizeLimiter(1024 * 1024 * 5)) // 5MB
+	s.gin.Use(limits.RequestSizeLimiter(1024 * 1024 * 5)) // 5MB
 	if s.cfg.Server.Debug {
-		r.Use(mw.DebugMiddleware())
+		s.gin.Use(mw.DebugMiddleware())
 	} else {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	v1 := r.Group("/api/v1")
+	v1 := s.gin.Group("/api/v1")
 
-	health := v1.Group("/health")
 	authGroup := v1.Group("/auth")
 	companiesGroup := v1.Group("/companies")
 
 	authHttp.MapAuthRoutes(authGroup, authHandler, mw, s.cfg)
 	companiesHttp.MapCommentsRoutes(companiesGroup, companiesHandler, mw, s.cfg)
-
-	health.GET("", func(c *gin.Context) {
-		s.logger.Infof("Health check RequestID: %s", httphelper.GetRequestID(c))
-		c.JSON(http.StatusOK, gin.H{"status": "OK"})
-	})
 
 	return nil
 }

@@ -56,7 +56,7 @@ func (s *Server) Run() error {
 	go func() {
 		s.logger.Infof("Starting Server on PORT: %s", s.cfg.Server.Port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			s.logger.Fatalf("Error PPROF ListenAndServe: %s", err)
+			s.logger.Fatalf("Error ListenAndServe: %s", err)
 		}
 	}()
 
@@ -72,9 +72,11 @@ func (s *Server) Run() error {
 	kafkaProducer := kafkaClient.NewProducer(s.logger, s.cfg.Kafka.Brokers)
 	defer kafkaProducer.Close() // nolint: errcheck
 
-	if err := s.MapHandlers(s.gin, kafkaProducer); err != nil {
+	if err := s.MapHandlers(kafkaProducer); err != nil {
 		return err
 	}
+
+	s.runHealthCheck()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
@@ -124,7 +126,7 @@ func (s *Server) initKafkaTopics(ctx context.Context) {
 		s.logger.Warnf("initKafkaTopics.DialContext", err)
 		return
 	}
-	defer conn.Close()
+	defer conn.Close() // nolint: errcheck
 
 	s.logger.Infof("established new kafka controller connection: %s", controllerURI)
 

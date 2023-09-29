@@ -99,7 +99,7 @@ func (h *companiesHandlers) Create(c *gin.Context) {
 // @Failure 400 {object} httphelper.RestErr
 // @Failure 404 {object} httphelper.RestErr
 // @Failure 500 {object} httphelper.RestErr
-// @Router /companies/{id} [put]
+// @Router /companies/{id} [patch]
 func (h *companiesHandlers) Update(c *gin.Context) {
 	span, ctx := opentracing.StartSpanFromContext(c, "companiesHandlers.Update")
 	defer span.Finish()

@@ -10,6 +10,7 @@ server:
   SSL: true
   CtxDefaultTimeout: 12
   Debug: false
+  CheckIntervalSeconds: 30
 
 logger:
   Development: true

@@ -38,3 +38,19 @@
 
 #### Clean all docker containers
     make down-local
+
+### Swagger UI:
+
+http://localhost:8080/swagger/index.html
+
+### Jaeger UI:
+
+http://localhost:16686
+
+### Prometheus UI:
+
+http://localhost:9090
+
+### Grafana UI:
+
+http://localhost:3000

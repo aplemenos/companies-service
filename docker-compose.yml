@@ -20,12 +20,14 @@ services:
     depends_on:
       - postgesql
       - redis
-      - prometheus
-      - grafana
-      - jaeger
       - zookeeper
       - kafka
     restart: always
+    healthcheck:
+      test: "curl --fail http://localhost:8080/live || exit 1"
+      interval: 30s
+      timeout: 15s
+      retries: 20
     volumes:
       - ./:/app
     networks:
