@@ -71,6 +71,7 @@ func (s *Server) Run() error {
 
 	kafkaProducer := kafkaClient.NewProducer(s.logger, s.cfg.Kafka.Brokers)
 	defer kafkaProducer.Close() // nolint: errcheck
+	s.logger.Info("Kafka connected")
 
 	if err := s.MapHandlers(kafkaProducer); err != nil {
 		return err

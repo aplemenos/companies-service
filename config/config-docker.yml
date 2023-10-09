@@ -40,7 +40,7 @@ redis:
   DB: 0
 
 kafka:
-  brokers: [ "172.24.0.9:9092" ]
+  brokers: [ "172.24.0.1:9092" ]
   initTopics: true
 kafkaTopics:
   companyCreated:
